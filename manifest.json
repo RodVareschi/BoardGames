@@ -1,7 +1,7 @@
 {
-  "name": "Board Game Guide",
-  "short_name": "Game Guide",
-  "description": "Quick reference for board games — English & Português",
+  "name": "BoardGames",
+  "short_name": "BoardGames",
+  "description": "BoardGames — quick reference for board games in English & Português",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#1a3a2a",

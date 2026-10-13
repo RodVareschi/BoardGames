@@ -1,4 +1,4 @@
-const CACHE = 'board-game-guide-v1';
+const CACHE = 'boardgames-v1';
 const ASSETS = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
