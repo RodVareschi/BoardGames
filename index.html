@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1a3a2a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<title>Board Game Guide</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+ --felt:#1a3a2a;--gold:#c9a84c;--gold-light:#e8c97a;--gold-dark:#8a6a1f;
+ --parchment:#f5edd8;--pd:#e8dcc0;--ink:#2c1a0e;--inkl:#5a3e28;
+ --cream:#faf5e8;--red:#8b2020;--rbg:#fdf0f0;--rbr:#e8c0c0;
+ --abg:#fdf8e8;--abr:#e8dca0;--at:#6b4e00;
+ --bbg:#eef4ff;--bbr:#b8d0f0;--bt:#1a3a6b;
+ --gbg:#edfaf2;--gbr:#a8dfc0;--gt:#1a5c2a;
+ --safe-top:env(safe-area-inset-top,0px);
+ --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Crimson Pro',serif;font-size:15px;background:var(--felt);color:var(--ink);display:flex;flex-direction:column;}
+.app{display:flex;flex-direction:column;height:100%;padding-top:var(--safe-top);}
+.header{background:linear-gradient(180deg,#0a1e12 0%,var(--felt) 100%);border-bottom:2px solid var(--gold-dark);padding:14px 16px 10px;flex-shrink:0;}
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+.logo{font-family:'Cinzel',serif;font-size:20px;font-weight:700;color:var(--gold);letter-spacing:2px;line-height:1.1;}
+.logo span{font-size:10px;display:block;color:rgba(201,168,76,.6);letter-spacing:3px;font-style:italic;font-family:'Crimson Pro',serif;}
+.lang-toggle{display:flex;border:1.5px solid rgba(201,168,76,.35);border-radius:20px;overflow:hidden;flex-shrink:0;}
+.lang-btn{padding:5px 11px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.5px;cursor:pointer;border:none;background:transparent;color:rgba(201,168,76,.55);transition:all .15s;}
+.lang-btn.active{background:var(--gold);color:var(--ink);}
+.search-box{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.07);border:1px solid rgba(201,168,76,.25);border-radius:20px;padding:7px 12px;}
+.search-box input{background:none;border:none;outline:none;color:var(--gold-light);font-family:'Crimson Pro',serif;font-size:14px;width:100%;}
+.search-box input::placeholder{color:rgba(201,168,76,.4);}
+.search-icon{color:rgba(201,168,76,.5);font-size:15px;flex-shrink:0;}
+.col-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
+.col-tabs::-webkit-scrollbar{display:none;}
+.col-tab{padding:5px 13px;border-radius:20px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.5px;cursor:pointer;border:1.5px solid rgba(201,168,76,.25);color:rgba(201,168,76,.6);background:transparent;transition:all .15s;white-space:nowrap;flex-shrink:0;}
+.col-tab.active{background:var(--gold);color:var(--ink);border-color:var(--gold);}
+.content{flex:1;overflow-y:auto;padding:14px;-webkit-overflow-scrolling:touch;}
+.game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
+.game-card{background:var(--parchment);border-radius:10px;border:1.5px solid var(--gold-dark);padding:14px 11px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;-webkit-user-select:none;user-select:none;}
+.game-card:active{transform:scale(.97);border-color:var(--gold);}
+.game-card::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.12) 0%,transparent 60%);pointer-events:none;}
+.game-emoji{font-size:30px;display:block;margin-bottom:7px;}
+.game-title{font-family:'Cinzel',serif;font-size:12px;font-weight:600;color:var(--ink);line-height:1.3;margin-bottom:3px;}
+.game-meta{font-size:11px;color:var(--inkl);font-style:italic;}
+.game-badge{display:inline-block;font-size:9px;font-family:'Cinzel',serif;padding:2px 6px;border-radius:10px;margin-top:5px;background:#d4edda;color:#1a5c2a;border:1px solid #a8d5b0;}
+.panel-overlay{position:fixed;inset:0;background:var(--cream);z-index:100;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);padding-bottom:var(--safe-bottom);}
+.panel-overlay.open{transform:translateX(0);}
+.panel-header{background:var(--pd);border-bottom:1.5px solid var(--gold-dark);padding:12px 15px;padding-top:calc(12px + var(--safe-top));flex-shrink:0;}
+.pb-btn{font-size:13px;color:var(--inkl);font-style:italic;cursor:pointer;display:flex;align-items:center;gap:5px;margin-bottom:8px;-webkit-user-select:none;user-select:none;}
+.pb-btn:active{opacity:.6;}
+.ptitle{font-family:'Cinzel',serif;font-size:17px;font-weight:700;color:var(--ink);margin-bottom:2px;}
+.psub{font-size:12px;color:var(--inkl);font-style:italic;margin-bottom:9px;}
+.mode-tabs{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;}
+.mode-tabs::-webkit-scrollbar{display:none;}
+.mode-tab{padding:6px 13px;border-radius:20px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.5px;cursor:pointer;border:1.5px solid var(--pd);color:var(--inkl);background:white;transition:all .15s;white-space:nowrap;flex-shrink:0;}
+.mode-tab.active{background:var(--ink);color:var(--gold);border-color:var(--ink);}
+.panel-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.goal-bar{background:var(--abg);border:1px solid var(--abr);border-radius:8px;padding:9px 13px;margin:12px 15px 0;}
+.goal-bar strong{font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;color:var(--at);display:block;margin-bottom:3px;}
+.goal-bar p{font-size:13.5px;color:var(--ink);line-height:1.5;}
+.score-bar{background:var(--gbg);border:1px solid var(--gbr);border-radius:8px;padding:9px 13px;margin:8px 15px 0;}
+.score-bar strong{font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;color:var(--gt);display:block;margin-bottom:6px;}
+.score-pills{display:flex;flex-wrap:wrap;gap:5px;}
+.score-pill{background:white;border:1px solid var(--gbr);border-radius:12px;padding:4px 9px;font-size:12px;color:var(--ink);display:flex;align-items:center;gap:5px;}
+.sp-val{font-family:'Cinzel',serif;font-size:10px;font-weight:600;color:var(--gt);}
+.panel-body{padding:14px 15px 24px;}
+.sec-title{font-family:'Cinzel',serif;font-size:10px;font-weight:600;letter-spacing:2px;color:var(--inkl);text-transform:uppercase;margin:0 0 10px;display:flex;align-items:center;gap:7px;}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--pd);}
+.check-list{margin-bottom:18px;}
+.check-item{display:flex;gap:10px;padding:8px 0;border-bottom:.5px solid var(--pd);align-items:flex-start;cursor:pointer;-webkit-user-select:none;user-select:none;}
+.check-item:last-child{border-bottom:none;}
+.check-box{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--gold-dark);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;background:white;transition:all .15s;}
+.check-box.checked{background:var(--gold-dark);}
+.check-box.checked::after{content:'✓';font-size:11px;color:white;font-weight:bold;}
+.check-text{font-size:13.5px;color:var(--ink);line-height:1.45;}
+.check-text.done{text-decoration:line-through;opacity:.5;}
+.flow-wrap{margin-bottom:18px;}
+.flow-node{background:white;border:1px solid var(--pd);border-radius:10px;padding:11px 13px;}
+.fnh{display:flex;align-items:flex-start;gap:10px;}
+.fn{width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--gold);display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;}
+.fl{font-size:14px;color:var(--ink);line-height:1.5;flex:1;}
+.fl strong{font-family:'Cinzel',serif;font-size:12px;display:block;margin-bottom:2px;}
+.flow-hint{background:var(--bbg);border:1px solid var(--bbr);border-radius:6px;padding:7px 10px;margin-top:8px;font-size:12.5px;color:var(--bt);line-height:1.4;}
+.flow-warn{background:var(--rbg);border:1px solid var(--rbr);border-radius:6px;padding:7px 10px;margin-top:8px;display:flex;gap:7px;align-items:flex-start;}
+.fwd{width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:5px;}
+.fwt{font-size:12.5px;color:var(--red);line-height:1.4;font-style:italic;}
+.flow-branch{margin-top:10px;padding-left:10px;border-left:2px solid var(--pd);}
+.fbt{font-size:10px;font-family:'Cinzel',serif;letter-spacing:1px;color:var(--inkl);margin-bottom:6px;}
+.flow-option{display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:.5px solid var(--pd);}
+.flow-option:last-child{border-bottom:none;}
+.fot{font-family:'Cinzel',serif;font-size:10px;padding:3px 7px;border-radius:10px;background:var(--pd);color:var(--inkl);flex-shrink:0;margin-top:2px;white-space:nowrap;}
+.fox{font-size:13px;color:var(--ink);line-height:1.45;}
+.fow{font-size:12px;color:var(--red);font-style:italic;display:block;margin-top:3px;}
+.foh{font-size:12px;color:var(--bt);display:block;margin-top:3px;}
+.flow-arrow{text-align:center;color:var(--gold-dark);font-size:18px;line-height:1;margin:4px 0;}
+.flow-end{background:var(--ink);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.fei{font-size:18px;flex-shrink:0;}
+.fet{font-size:13.5px;color:var(--gold-light);line-height:1.45;}
+.fet strong{font-family:'Cinzel',serif;font-size:10px;display:block;color:var(--gold);letter-spacing:1px;margin-bottom:3px;}
+.fwb{background:var(--rbg);border:1px solid var(--rbr);border-radius:10px;padding:9px 12px;margin-bottom:5px;display:flex;gap:7px;align-items:flex-start;}
+.player-card{background:white;border:1.5px solid var(--gold-dark);border-radius:10px;padding:15px;margin-bottom:16px;}
+.pct{font-family:'Cinzel',serif;font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.pc-section{margin-bottom:11px;}
+.pc-label{font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;color:var(--inkl);text-transform:uppercase;margin-bottom:5px;}
+.pc-item{display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:.5px solid var(--pd);font-size:13.5px;color:var(--ink);line-height:1.45;}
+.pc-item:last-child{border-bottom:none;}
+.pc-num{font-family:'Cinzel',serif;font-size:11px;font-weight:700;color:var(--gold-dark);flex-shrink:0;width:16px;}
+.pc-rem{background:var(--abg);border:1px solid var(--abr);border-radius:6px;padding:8px 11px;font-size:12.5px;color:var(--at);line-height:1.4;margin-top:8px;}
+.empty{text-align:center;padding:40px 20px;color:rgba(201,168,76,.5);}
+.empty-icon{font-size:40px;margin-bottom:10px;}
+.empty-text{font-family:'Cinzel',serif;font-size:13px;letter-spacing:1px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="header">
+    <div class="hrow">
+      <div class="logo" id="logoTitle">Guia de Mesa<span id="logoSub">referência rápida</span></div>
+      <div class="lang-toggle">
+        <button class="lang-btn" id="btnPt" onclick="setLang('pt')">PT</button>
+        <button class="lang-btn" id="btnEn" onclick="setLang('en')">EN</button>
+      </div>
+    </div>
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="search" id="searchInput" autocomplete="off">
+    </div>
+    <div class="col-tabs" id="colTabs"></div>
+  </header>
+  <main class="content">
+    <div class="game-grid" id="gameGrid"></div>
+  </main>
+</div>
+
+<div class="panel-overlay" id="panelOverlay">
+  <div class="panel-header">
+    <div class="pb-btn" onclick="closePanel()" id="backBtn">← voltar à coleção</div>
+    <div class="ptitle" id="panelTitle"></div>
+    <div class="psub" id="panelMeta"></div>
+    <div class="mode-tabs" id="modeTabs"></div>
+  </div>
+  <div class="panel-scroll">
+    <div class="goal-bar" id="goalBar"></div>
+    <div class="score-bar" id="scoreBar"></div>
+    <div class="panel-body" id="panelBody"></div>
+  </div>
+</div>
+
+<script>
+// ── i18n ──────────────────────────────────────────────────────
+let lang = localStorage.getItem('lang') || 'pt';
+
+const UI = {
+  pt: {
+    logoTitle: 'Guia de Mesa',
+    logoSub: 'referência rápida',
+    searchPlaceholder: 'Buscar jogo…',
+    back: '← voltar à coleção',
+    players: 'jogadores',
+    playersShort: 'jog.',
+    cardReady: '✓ ficha pronta',
+    noResults: 'Nenhum jogo encontrado',
+    goal: '🎯 OBJETIVO',
+    scoring: '🏅 PONTUAÇÃO',
+    setup: 'Preparação',
+    howToPlay: 'Como jogar',
+    tabGuide: '📋 Ficha',
+    tabNewbie: '🎓 Primeira partida',
+    tabPlayer: '🃏 Meu turno',
+    playerCard: 'Cartão do jogador',
+    myTurn: '— O que fazer no meu turno',
+    actions: 'Ações',
+    remember: 'Não esqueça',
+    seeGuide: '💡 Dúvida em algum termo? Veja a aba Ficha.',
+  },
+  en: {
+    logoTitle: 'Board Game Guide',
+    logoSub: 'quick reference',
+    searchPlaceholder: 'Search game…',
+    back: '← back to collection',
+    players: 'players',
+    playersShort: 'pl.',
+    cardReady: '✓ guide ready',
+    noResults: 'No games found',
+    goal: '🎯 GOAL',
+    scoring: '🏅 SCORING',
+    setup: 'Setup',
+    howToPlay: 'How to play',
+    tabGuide: '📋 Guide',
+    tabNewbie: '🎓 First game',
+    tabPlayer: '🃏 My turn',
+    playerCard: 'Player card',
+    myTurn: '— What to do on my turn',
+    actions: 'Actions',
+    remember: "Don't forget",
+    seeGuide: '💡 Unsure about a term? See the Guide tab.',
+  },
+};
+
+function t(key) { return UI[lang][key]; }
+function L(obj) { return obj[lang] || obj.pt; }
+
+// ── DATA ──────────────────────────────────────────────────────
+const COLS = [
+  { label: { pt: '🗂 Todos', en: '🗂 All' }, ids: null },
+  { label: { pt: '🎯 Estratégia', en: '🎯 Strategy' }, ids: [1, 3] },
+  { label: { pt: '👨‍👩‍👧 Família', en: '👨‍👩‍👧 Family' }, ids: [1, 2, 3] },
+];
+
+const GAMES = [
+  {
+    id: 1, emoji: '🚃', name: 'Ticket to Ride', players: '2–5',
+    goal: {
+      pt: 'Acumule mais pontos construindo rotas de trem no mapa e completando Destinos secretos. Cuidado: Destinos não completados subtraem pontos.',
+      en: 'Score the most points by building train routes on the map and completing secret Destination tickets. Warning: incomplete Destinations subtract points.',
+    },
+    scoring: [
+      { l: { pt: 'Rotas construídas', en: 'Routes built' }, v: { pt: '1 a 15 pts conforme o tamanho', en: '1 to 15 pts by length' } },
+      { l: { pt: 'Destinos completados', en: 'Destinations completed' }, v: { pt: '+ pontos indicados na carta', en: '+ points shown on card' } },
+      { l: { pt: 'Destinos não completados', en: 'Destinations incomplete' }, v: { pt: '− pontos indicados na carta', en: '− points shown on card' } },
+      { l: { pt: 'Rota mais longa contínua', en: 'Longest continuous route' }, v: { pt: '+10 pts (apenas 1 jogador)', en: '+10 pts (one player only)' } },
+    ],
+    playerCard: {
+      action: {
+        pt: [
+          'Faça UMA das três ações: Comprar cartas de vagão, Construir uma rota, ou Pegar novas cartas de Destino',
+          'Comprar cartas: pegue 2 da área visível ou do deck. Locomotiva da área visível = só 1 carta nesse turno',
+          'Construir rota: pague as cartas da cor e quantidade exata da rota; coloque seus trens sobre ela no mapa',
+          'Pegar Destinos: compre 3 cartas, fique com ao menos 1 e devolva o resto ao fundo do baralho',
+        ],
+        en: [
+          'Take ONE of three actions: Draw train cards, Claim a route, or Draw new Destination tickets',
+          'Draw cards: take 2 from the face-up row or the deck. Locomotive from the row = only 1 card that turn',
+          'Claim route: pay the exact color and number of cards shown; place your trains on that route',
+          'Draw Destinations: draw 3 tickets, keep at least 1, return the rest to the bottom of the deck',
+        ],
+      },
+      remember: {
+        pt: [
+          'Quando alguém ficar com 2 ou menos trens: todos têm exatamente mais 1 turno, depois para',
+          'Destinos não completados subtraem pontos — não pegue mais do que consegue cumprir',
+          'Rota mais longa contínua no fim = +10 pts para 1 jogador apenas',
+          'Rotas duplas (linhas paralelas): com 3+ jogadores, cada lado pertence a um jogador diferente',
+        ],
+        en: [
+          'When someone has 2 or fewer trains left: everyone gets exactly 1 more turn, then the game ends',
+          'Incomplete Destinations subtract points — don\'t take more than you can finish',
+          'Longest continuous route at the end = +10 pts for one player only',
+          'Double routes (parallel lines): with 3+ players, each side belongs to a different player',
+        ],
+      },
+    },
+    setup: {
+      pt: [
+        'Espalhar o mapa no centro da mesa e separar os 45 trens plásticos de cada jogador por cor',
+        'Embaralhar as cartas de vagão e distribuir 4 para cada jogador; revelar 5 na área de compra visível',
+        'Embaralhar as cartas de Destino e distribuir 3 para cada jogador — guardar ao menos 1 em segredo',
+        'Destinos guardados são segredos até a contagem final — não mostre para ninguém',
+        'O jogador que viajou mais recentemente (ou sorteado) começa',
+      ],
+      en: [
+        'Spread the map in the center and give each player their 45 plastic trains in their color',
+        'Shuffle train cards and deal 4 to each player; reveal 5 in the face-up draw area',
+        'Shuffle Destination tickets and deal 3 to each player — keep at least 1 in secret',
+        'Kept Destinations stay secret until final scoring — don\'t show anyone',
+        'The player who traveled most recently (or random) goes first',
+      ],
+    },
+    flow: [
+      { t: 's', n: 1, label: {
+        pt: ' Faça UMA das três ações: ',
+        en: ' Take ONE of three actions: ',
+      }, branch: {
+        title: { pt: 'OPÇÕES', en: 'OPTIONS' },
+        opts: [
+          { tag: { pt: 'Comprar cartas', en: 'Draw cards' }, text: {
+            pt: 'Pegue 2 cartas da área visível (escolha quais) ou do topo do deck (sem ver). Locomotiva da área visível = só 1 carta nesse turno.',
+            en: 'Take 2 cards from the face-up row (your choice) or from the top of the deck (blind). Locomotive from the row = only 1 card that turn.',
+          }, hint: {
+            pt: 'Locomotivas são curingas valiosos — guarde para rotas longas de 5 ou 6 vagões.',
+            en: 'Locomotives are valuable wilds — save them for long 5- or 6-car routes.',
+          } },
+          { tag: { pt: 'Construir rota', en: 'Claim route' }, text: {
+            pt: 'Pague as cartas da cor e quantidade exata indicada na rota e coloque seus trens sobre ela. Rotas cinzas aceitam qualquer cor, mas todas as cartas da jogada devem ser da mesma cor.',
+            en: 'Pay the exact color and number of cards shown on the route and place your trains on it. Gray routes accept any color, but all cards played must match.',
+          }, warn: {
+            pt: 'Rotas duplas: com 3+ jogadores, cada lado pertence a um jogador diferente.',
+            en: 'Double routes: with 3+ players, each side belongs to a different player.',
+          }, hint: {
+            pt: 'Priorize completar seus Destinos antes de bloquear adversários.',
+            en: 'Prioritize completing your Destinations before blocking opponents.',
+          } },
+          { tag: { pt: 'Pegar Destinos', en: 'Draw Destinations' }, text: {
+            pt: 'Compre 3 cartas de Destino e fique com ao menos 1, devolvendo as indesejadas ao fundo do baralho.',
+            en: 'Draw 3 Destination tickets and keep at least 1, returning unwanted ones to the bottom of the deck.',
+          }, warn: {
+            pt: 'Não pegue Destinos que exijam regiões que você ainda não tem trens para cobrir.',
+            en: 'Don\'t take Destinations requiring regions you can\'t reach in time.',
+          } },
+        ],
+      } },
+      { t: 's', n: 2, label: {
+        pt: 'Passe a vez. Quando alguém ficar com 2 ou menos trens, todos têm exatamente mais 1 turno cada.',
+        en: 'Pass the turn. When someone has 2 or fewer trains, everyone gets exactly 1 more turn each.',
+      }, warn: {
+        pt: 'Não deixe rotas essenciais para o final — um bloqueio pode virar penalidade negativa.',
+        en: 'Don\'t leave essential routes for last — a block can turn into negative points.',
+      } },
+      { t: 'e', icon: '🚉', title: { pt: 'CONTAGEM FINAL', en: 'FINAL SCORING' }, text: {
+        pt: 'Revele todos os Destinos. Some pontos das rotas + Destinos completados − Destinos não completados. Rota contínua mais longa = +10 pts (só 1 jogador). Maior total vence.',
+        en: 'Reveal all Destinations. Add route points + completed Destinations − incomplete Destinations. Longest continuous route = +10 pts (one player). Highest total wins.',
+      } },
+    ],
+  },
+
+  {
+    id: 2, emoji: '🏔️', name: 'Trekking the National Parks', players: '1–5',
+    goal: {
+      pt: 'Visite parques nacionais e acumule mais Pontos de Vitória coletando cartas de parque, conjuntos de pedras e peças bônus. Quem tiver mais pontos ao fim vence.',
+      en: 'Visit national parks and score the most Victory Points by collecting park cards, stone sets, and bonus tokens. Highest score at the end wins.',
+    },
+    scoring: [
+      { l: { pt: 'Cartas de parque', en: 'Park cards' }, v: { pt: 'pontos impressos em cada carta', en: 'points printed on each card' } },
+      { l: { pt: 'Conjuntos de pedras', en: 'Stone sets' }, v: { pt: 'bônus por completar conjuntos iguais', en: 'bonus for completing matching sets' } },
+      { l: { pt: 'Peças bônus', en: 'Bonus tokens' }, v: { pt: 'pontos extras coletados no tabuleiro', en: 'extra points collected on the board' } },
+      { l: { pt: 'Cartas de parque majoritário', en: 'Majority park cards' }, v: { pt: 'bônus para quem visitou mais parques de uma região', en: 'bonus for most parks visited in a region' } },
+    ],
+    playerCard: {
+      action: {
+        pt: [
+          'Role os 3 dados de movimento e escolha quais usar (pode usar 1, 2 ou os 3)',
+          'Mova seu camper pelo tabuleiro exatamente o número de casas indicado pelos dados escolhidos',
+          'Ao parar em uma casa: colete o recurso, carta ou peça bônus indicada',
+          'Se visitar um parque nacional: pague os recursos exigidos e pegue a carta do parque',
+          'Opcionalmente, troque recursos por ações especiais no centro do tabuleiro',
+        ],
+        en: [
+          'Roll the 3 movement dice and choose which to use (you may use 1, 2, or all 3)',
+          'Move your camper on the board by the total of the dice you chose',
+          'When landing on a space: collect the resource, card, or bonus token shown',
+          'When visiting a national park: pay the required resources and take the park card',
+          'Optionally, trade resources for special actions at the center of the board',
+        ],
+      },
+      remember: {
+        pt: [
+          'Você pode usar cada dado apenas uma vez por turno — planeje a rota antes de mover',
+          'Parques exigem combinações específicas de pedras/câmera — verifique antes de ir',
+          'Cartas de parque valem pontos no fim — colete o máximo que conseguir',
+          'Peças bônus no tabuleiro são limitadas — chegue cedo nos espaços valiosos',
+        ],
+        en: [
+          'Each die can only be used once per turn — plan your route before moving',
+          'Parks require specific stone/camera combinations — check before you go',
+          'Park cards are worth points at the end — collect as many as you can',
+          'Bonus tokens on the board are limited — reach valuable spaces early',
+        ],
+      },
+    },
+    setup: {
+      pt: [
+        'Montar o tabuleiro hexagonal no centro e posicionar as cartas de parque nos espaços correspondentes',
+        'Colocar as peças bônus (fotos, câmeras, pedras) nos locais indicados no tabuleiro',
+        'Cada jogador escolhe uma cor de camper e coloca na área de início',
+        'Embaralhar o baralho de cartas de parque e colocar viradas para cima nos parques',
+        'Distribuir 2 cartas de parque iniciais para cada jogador (se aplicável à edição)',
+        'O jogador que visitou mais parques nacionais recentemente começa',
+      ],
+      en: [
+        'Assemble the hex board in the center and place park cards on their matching spaces',
+        'Place bonus tokens (photos, cameras, stones) on the locations shown on the board',
+        'Each player picks a camper color and places it at the starting area',
+        'Shuffle the park card deck and place cards face-up on the parks',
+        'Deal 2 starting park cards to each player (if applicable to your edition)',
+        'The player who most recently visited a national park goes first',
+      ],
+    },
+    flow: [
+      { t: 's', n: 1, label: {
+        pt: ' Role os 3 dados de movimento e escolha quais usar para se mover pelo tabuleiro.',
+        en: ' Roll the 3 movement dice and choose which to use to move around the board.',
+      }, hint: {
+        pt: 'Dados altos alcançam parques distantes; dados baixos permitem coletar recursos no caminho.',
+        en: 'High dice reach distant parks; low dice let you collect resources along the way.',
+      } },
+      { t: 's', n: 2, label: {
+        pt: ' Mova seu camper e resolva o espaço onde parar:',
+        en: ' Move your camper and resolve the space where you land:',
+      }, branch: {
+        title: { pt: 'TIPOS DE ESPAÇO', en: 'SPACE TYPES' },
+        opts: [
+          { tag: { pt: 'Recurso', en: 'Resource' }, text: {
+            pt: 'Colete a pedra ou câmera indicada. Recursos são usados para visitar parques.',
+            en: 'Collect the stone or camera shown. Resources are spent to visit parks.',
+          } },
+          { tag: { pt: 'Parque', en: 'Park' }, text: {
+            pt: 'Pague os recursos exigidos na carta do parque e pegue-a. A carta vale pontos no fim.',
+            en: 'Pay the resources required on the park card and take it. The card is worth points at the end.',
+          }, warn: {
+            pt: 'Cada parque só pode ser visitado uma vez — quem chegar primeiro leva a carta.',
+            en: 'Each park can only be visited once — first arrival takes the card.',
+          } },
+          { tag: { pt: 'Bônus', en: 'Bonus' }, text: {
+            pt: 'Pegue a peça bônus do espaço (se ainda disponível). Peças bônus valem pontos extras.',
+            en: 'Take the bonus token from the space (if still available). Bonus tokens are worth extra points.',
+          } },
+        ],
+      } },
+      { t: 's', n: 3, label: {
+        pt: 'Opcional: troque recursos por ações especiais no centro do tabuleiro (fotos, câmeras extras).',
+        en: 'Optional: trade resources for special actions at the center of the board (photos, extra cameras).',
+      } },
+      { t: 's', n: 4, label: {
+        pt: 'Passe a vez no sentido horário.',
+        en: 'Pass the turn clockwise.',
+      } },
+      { t: 'e', icon: '🏔️', title: { pt: 'FIM DE JOGO', en: 'GAME END' }, text: {
+        pt: 'Quando todos os parques forem visitados ou um jogador completar o número de cartas indicado, termine a rodada atual. Some: pontos das cartas de parque + bônus de conjuntos + peças bônus + majoritários. Maior total vence.',
+        en: 'When all parks are visited or a player completes the target number of cards, finish the current round. Add: park card points + set bonuses + bonus tokens + majority bonuses. Highest total wins.',
+      } },
+    ],
+  },
+
+  {
+    id: 3, emoji: '🎨', name: 'Azul', players: '2–4',
+    goal: {
+      pt: 'Coloque azulejos no seu painel de parede e marque mais pontos que os adversários. Pontos vêm de azulejos colocados, linhas completas, colunas, cores e penalidades evitadas.',
+      en: 'Place tiles on your wall panel and score more points than your opponents. Points come from placed tiles, completed rows, columns, colors, and avoiding floor-line penalties.',
+    },
+    scoring: [
+      { l: { pt: 'Azulejos colocados', en: 'Tiles placed' }, v: { pt: 'pts por adjacência no momento da colocação', en: 'pts for adjacency when placed' } },
+      { l: { pt: 'Linha completa (horizontal)', en: 'Complete row' }, v: { pt: '+2 pts por linha', en: '+2 pts per row' } },
+      { l: { pt: 'Coluna completa (vertical)', en: 'Complete column' }, v: { pt: '+7 pts por coluna', en: '+7 pts per column' } },
+      { l: { pt: 'Cor completa', en: 'Complete color' }, v: { pt: '+10 pts por cor', en: '+10 pts per color' } },
+      { l: { pt: 'Linha do chão (floor line)', en: 'Floor line' }, v: { pt: '−1 a −3 pts por azulejo', en: '−1 to −3 pts per tile' } },
+    ],
+    playerCard: {
+      action: {
+        pt: [
+          'Fase 1 — Oferta: pegue TODOS os azulejos de uma cor de uma fábrica OU todos do centro',
+          'Se for o primeiro a pegar do centro nesta rodada, pegue também o marcador de 1º jogador',
+          'Fase 2 — Parede: coloque os azulejos em UMA linha de padrão (da direita para a esquerda)',
+          'Excesso de azulejos vai para a linha do chão (floor line) e causa penalidade',
+          'No fim da rodada: mova 1 azulejo de cada linha completa para a parede e marque pontos',
+        ],
+        en: [
+          'Phase 1 — Factory offer: take ALL tiles of one color from a factory OR all from the center',
+          'If you are the first to take from the center this round, also take the start player marker',
+          'Phase 2 — Wall tiling: place tiles on ONE pattern line (right to left)',
+          'Overflow tiles go to the floor line and cause a penalty',
+          'End of round: move 1 tile from each complete pattern line to the wall and score points',
+        ],
+      },
+      remember: {
+        pt: [
+          'Você DEVE colocar todos os azulejos pegos — não pode guardar para depois',
+          'Cada linha de padrão aceita apenas 1 cor por rodada',
+          'A parede tem regras de cor fixas — verifique onde cada azulejo pode ir',
+          'Linha do chão: −1, −1, −2, −2, −2, −3, −3 pts (da esquerda para a direita)',
+        ],
+        en: [
+          'You MUST place all tiles you took — you cannot save them for later',
+          'Each pattern line accepts only 1 color per round',
+          'The wall has fixed color rules — check where each tile can go',
+          'Floor line: −1, −1, −2, −2, −2, −3, −3 pts (left to right)',
+        ],
+      },
+    },
+    setup: {
+      pt: [
+        'Cada jogador recebe um painel de parede e o marcador de pontuação na posição 0',
+        'Colocar os displays de fábrica no centro (5 displays para 2 jog., 7 para 3 jog., 9 para 4 jog.)',
+        'Encher o saco com todos os azulejos, embaralhar e colocar 4 azulejos em cada display',
+        'Colocar o marcador de 1º jogador no centro (área de azulejos descartados)',
+        'Sortear quem começa como 1º jogador',
+      ],
+      en: [
+        'Each player gets a wall panel and places their score marker at 0',
+        'Place factory displays in the center (5 for 2 players, 7 for 3, 9 for 4)',
+        'Fill the bag with all tiles, shuffle, and place 4 tiles on each display',
+        'Place the start player marker in the center (discard area)',
+        'Randomly determine the first player',
+      ],
+    },
+    flow: [
+      { t: 's', n: 1, label: {
+        pt: ' Fase de Oferta — Em ordem, cada jogador pega azulejos:',
+        en: ' Factory Offer phase — In order, each player takes tiles:',
+      }, branch: {
+        title: { pt: 'DE ONDE PEGAR', en: 'WHERE TO TAKE FROM' },
+        opts: [
+          { tag: { pt: 'De uma fábrica', en: 'From a factory' }, text: {
+            pt: 'Pegue TODOS os azulejos de UMA cor desse display. Azulejos restantes vão para o centro.',
+            en: 'Take ALL tiles of ONE color from that display. Remaining tiles go to the center.',
+          }, hint: {
+            pt: 'Pegar do display deixa azulejos no centro — isso pode ajitar ou atrapalhar o próximo jogador.',
+            en: 'Taking from a display leaves tiles in the center — this may help or hurt the next player.',
+          } },
+          { tag: { pt: 'Do centro', en: 'From the center' }, text: {
+            pt: 'Pegue TODOS os azulejos de UMA cor do centro. Se for o primeiro a pegar do centro, pegue o marcador de 1º jogador (vale −1 pt).',
+            en: 'Take ALL tiles of ONE color from the center. If first to take from center, take the start player marker (−1 pt).',
+          } },
+        ],
+      } },
+      { t: 's', n: 2, label: {
+        pt: ' Fase de Parede — Coloque os azulejos em UMA linha de padrão (da direita para a esquerda). Excesso vai para a linha do chão.',
+        en: ' Wall Tiling phase — Place tiles on ONE pattern line (right to left). Overflow goes to the floor line.',
+      }, warn: {
+        pt: 'Linha do chão: −1, −1, −2, −2, −2, −3, −3 pts. Evite ao máximo!',
+        en: 'Floor line: −1, −1, −2, −2, −2, −3, −3 pts. Avoid it as much as possible!',
+      } },
+      { t: 's', n: 3, label: {
+        pt: ' Fim da rodada — Para cada linha de padrão completa: mova 1 azulejo para a parede (na posição correta de cor) e marque pontos por adjacência.',
+        en: ' End of round — For each complete pattern line: move 1 tile to the wall (correct color position) and score adjacency points.',
+      }, hint: {
+        pt: 'Azulejos adjacentes na parede valem mais pontos — planeje posições que se conectem.',
+        en: 'Adjacent tiles on the wall score more — plan placements that connect.',
+      } },
+      { t: 'w', text: {
+        pt: 'Reponha os displays: coloque 4 azulejos novos em cada display vazio. O 1º jogador da rodada anterior começa a próxima.',
+        en: 'Refill displays: place 4 new tiles on each empty display. The previous round\'s first player starts the next.',
+      } },
+      { t: 'e', icon: '🎨', title: { pt: 'FIM DE JOGO', en: 'GAME END' }, text: {
+        pt: 'Quando alguém completar uma linha horizontal na parede, termine a rodada atual. Some: pontos da partida + bônus de linhas (+2), colunas (+7) e cores (+10) completas − penalidades do chão. Maior total vence.',
+        en: 'When someone completes a horizontal row on the wall, finish the current round. Add: game points + row (+2), column (+7), and color (+10) bonuses − floor penalties. Highest total wins.',
+      } },
+    ],
+  },
+];
+
+// ── STATE ──────────────────────────────────────────────────────
+let curGame = null, curMode = 'normal', curCol = 0, searchQ = '';
+
+// ── LANGUAGE ───────────────────────────────────────────────────
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('lang', l);
+  document.documentElement.lang = l === 'pt' ? 'pt-BR' : 'en';
+  document.title = t('logoTitle');
+  applyUI();
+  renderColTabs();
+  renderGrid();
+  if (curGame !== null) {
+    const g = GAMES.find(x => x.id === curGame);
+    document.getElementById('panelTitle').textContent = `${g.emoji} ${g.name}`;
+    document.getElementById('panelMeta').textContent = `${g.players} ${t('players')}`;
+    renderModeTabs();
+    document.getElementById('goalBar').innerHTML = `<strong>${t('goal')}</strong><p>${L(g.goal)}</p>`;
+    document.getElementById('scoreBar').innerHTML = `<strong>${t('scoring')}</strong><div class="score-pills">${g.scoring.map(s => `<span class="score-pill">${L(s.l)} <span class="sp-val">${L(s.v)}</span></span>`).join('')}</div>`;
+    renderBody();
+  }
+}
+
+function applyUI() {
+  document.getElementById('logoTitle').childNodes[0].textContent = t('logoTitle');
+  document.getElementById('logoSub').textContent = t('logoSub');
+  document.getElementById('searchInput').placeholder = t('searchPlaceholder');
+  document.getElementById('backBtn').textContent = t('back');
+  document.getElementById('btnPt').classList.toggle('active', lang === 'pt');
+  document.getElementById('btnEn').classList.toggle('active', lang === 'en');
+}
+
+// ── RENDER GRID ────────────────────────────────────────────────
+function renderColTabs() {
+  document.getElementById('colTabs').innerHTML = COLS.map((c, i) =>
+    `<button class="col-tab${i === curCol ? ' active' : ''}" onclick="setCol(${i})">${L(c.label)}</button>`
+  ).join('');
+}
+
+function setCol(i) {
+  curCol = i;
+  searchQ = '';
+  document.getElementById('searchInput').value = '';
+  renderColTabs();
+  renderGrid();
+}
+
+function renderGrid() {
+  const grid = document.getElementById('gameGrid');
+  const ids = COLS[curCol].ids;
+  let list = ids ? GAMES.filter(g => ids.includes(g.id)) : GAMES;
+  if (searchQ) {
+    const q = searchQ.toLowerCase();
+    list = list.filter(g => g.name.toLowerCase().includes(q));
+  }
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">${t('noResults')}</div></div>`;
+    return;
+  }
+  grid.innerHTML = list.map(game => `
+    <div class="game-card" onclick="openPanel(${game.id})">
+      <span class="game-emoji">${game.emoji}</span>
+      <div class="game-title">${game.name}</div>
+      <div class="game-meta">${game.players} ${t('playersShort')}</div>
+      <span class="game-badge">${t('cardReady')}</span>
+    </div>
+  `).join('');
+}
+
+// ── PANEL ──────────────────────────────────────────────────────
+function openPanel(id) {
+  curGame = id;
+  curMode = 'normal';
+  const g = GAMES.find(x => x.id === id);
+  document.getElementById('panelTitle').textContent = `${g.emoji} ${g.name}`;
+  document.getElementById('panelMeta').textContent = `${g.players} ${t('players')}`;
+  renderModeTabs();
+  document.getElementById('goalBar').innerHTML = `<strong>${t('goal')}</strong><p>${L(g.goal)}</p>`;
+  document.getElementById('scoreBar').innerHTML = `<strong>${t('scoring')}</strong><div class="score-pills">${g.scoring.map(s => `<span class="score-pill">${L(s.l)} <span class="sp-val">${L(s.v)}</span></span>`).join('')}</div>`;
+  renderBody();
+  document.getElementById('panelOverlay').classList.add('open');
+  document.getElementById('panelOverlay').querySelector('.panel-scroll').scrollTop = 0;
+}
+
+function closePanel() {
+  document.getElementById('panelOverlay').classList.remove('open');
+  curGame = null;
+}
+
+function renderModeTabs() {
+  const tabs = [
+    { k: 'normal', l: t('tabGuide') },
+    { k: 'newbie', l: t('tabNewbie') },
+    { k: 'player', l: t('tabPlayer') },
+  ];
+  document.getElementById('modeTabs').innerHTML = tabs.map(m =>
+    `<button class="mode-tab${curMode === m.k ? ' active' : ''}" onclick="setMode('${m.k}')">${m.l}</button>`
+  ).join('');
+}
+
+function setMode(m) {
+  curMode = m;
+  renderModeTabs();
+  renderBody();
+  document.getElementById('panelOverlay').querySelector('.panel-scroll').scrollTop = 0;
+}
+
+// ── FLOW BUILDER ───────────────────────────────────────────────
+function buildFlow(flow, hints) {
+  let h = '', sc = 0;
+  const steps = flow.filter(n => n.t === 's');
+  flow.forEach(node => {
+    if (node.t === 's') {
+      sc++;
+      h += `<div class="flow-node"><div class="fnh"><div class="fn">${node.n}</div><div class="fl"><strong>${L(node.label)}</strong>`;
+      if (node.warn) h += `<div class="flow-warn"><div class="fwd"></div><div class="fwt">${L(node.warn)}</div></div>`;
+      if (node.hint && hints) h += `<div class="flow-hint">🎓 ${L(node.hint)}</div>`;
+      if (node.branch) {
+        h += `<div class="flow-branch"><div class="fbt">${L(node.branch.title)}</div>`;
+        node.branch.opts.forEach(o => {
+          h += `<div class="flow-option"><span class="fot">${L(o.tag)}</span><div class="fox">${L(o.text)}`;
+          if (o.warn) h += `<span class="fow">⚠ ${L(o.warn)}</span>`;
+          if (o.hint && hints) h += `<span class="foh">🎓 ${L(o.hint)}</span>`;
+          h += `</div></div>`;
+        });
+        h += `</div>`;
+      }
+      h += `</div></div></div>`;
+      if (sc < steps.length || flow.find(n => n.t === 'e')) h += `<div class="flow-arrow">↓</div>`;
+    } else if (node.t === 'w') {
+      h += `<div class="fwb"><div class="fwd"></div><div class="fwt">${L(node.text)}</div></div><div class="flow-arrow">↓</div>`;
+    } else if (node.t === 'e') {
+      h += `<div class="flow-end"><span class="fei">${node.icon}</span><div class="fet"><strong>${L(node.title)}</strong>${L(node.text)}</div></div>`;
+    }
+  });
+  return h;
+}
+
+function renderBody() {
+  const g = GAMES.find(x => x.id === curGame);
+  if (!g) return;
+
+  if (curMode === 'player') {
+    let h = `<div class="player-card"><div class="pct">${t('playerCard')} ${g.emoji} ${g.name} ${t('myTurn')}</div>`;
+    h += `<div class="pc-section"><div class="pc-label">${t('actions')}</div>`;
+    L(g.playerCard.action).forEach((a, i) => { h += `<div class="pc-item"><span class="pc-num">${i + 1}</span>${a}</div>`; });
+    h += `</div><div class="pc-section"><div class="pc-label">${t('remember')}</div>`;
+    L(g.playerCard.remember).forEach(r => { h += `<div class="pc-item">⚠ ${r}</div>`; });
+    h += `</div><div class="pc-rem">${t('seeGuide')}</div></div>`;
+    document.getElementById('panelBody').innerHTML = h;
+    return;
+  }
+
+  const hints = curMode === 'newbie';
+  let h = `<div class="sec-title">${t('setup')}</div><div class="check-list">`;
+  L(g.setup).forEach(s => { h += `<div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">${s}</div></div>`; });
+  h += `</div><div class="sec-title">${t('howToPlay')}</div><div class="flow-wrap">${buildFlow(g.flow, hints)}</div>`;
+  document.getElementById('panelBody').innerHTML = h;
+}
+
+function toggleCheck(el) {
+  el.querySelector('.check-box').classList.toggle('checked');
+  el.querySelector('.check-text').classList.toggle('done');
+}
+
+// ── SEARCH ─────────────────────────────────────────────────────
+document.getElementById('searchInput').addEventListener('input', function () {
+  searchQ = this.value.trim();
+  renderGrid();
+});
+
+// ── SWIPE TO CLOSE ─────────────────────────────────────────────
+let touchStartX = 0;
+document.getElementById('panelOverlay').addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+document.getElementById('panelOverlay').addEventListener('touchend', e => {
+  if (e.changedTouches[0].clientX - touchStartX > 80) closePanel();
+}, { passive: true });
+
+// ── BACK BUTTON ────────────────────────────────────────────────
+window.addEventListener('popstate', () => {
+  if (curGame !== null) { closePanel(); history.pushState(null, '', ''); }
+});
+history.pushState(null, '', '');
+
+// ── SERVICE WORKER ─────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+applyUI();
+renderColTabs();
+renderGrid();
+</script>
+</body>
+</html>
